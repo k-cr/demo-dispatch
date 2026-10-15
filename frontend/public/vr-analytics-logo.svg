@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 120" fill="none">
+  <!-- 4-Quadrant Icon Symbol -->
+  <g transform="translate(10, 8) scale(0.85)">
+    <line x1="60" y1="6" x2="60" y2="114" stroke="#1E293B" stroke-width="4.5" stroke-linecap="round"/>
+    <line x1="6" y1="60" x2="114" y2="60" stroke="#1E293B" stroke-width="4.5" stroke-linecap="round"/>
+    <circle cx="33" cy="33" r="18" stroke="#1E293B" stroke-width="4.5" fill="none"/>
+    <rect x="70" y="15" width="36" height="36" rx="2" fill="#3563A9"/>
+    <polygon points="33,68 12,106 54,106" fill="#D76800"/>
+    <path d="M88 68V106M69 87H107" stroke="#1E293B" stroke-width="4.5" stroke-linecap="round"/>
+  </g>
+
+  <!-- Typography -->
+  <text x="135" y="62" font-family="'Outfit', 'Inter', -apple-system, sans-serif" font-weight="800" font-size="34" fill="#1E293B" letter-spacing="1">VR ANALYTICS</text>
+  <text x="136" y="94" font-family="'Outfit', 'Inter', -apple-system, sans-serif" font-weight="600" font-size="15" fill="#1E293B" letter-spacing="5.5">BI SOLUTIONS</text>
+</svg>

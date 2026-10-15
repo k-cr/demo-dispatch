@@ -1,0 +1,40 @@
+{
+  "$comment": "Configuración de presentación del módulo Dispatch. La sirve GET /api/dispatch/config junto con los catálogos de la base de datos (estados, turnos, categorías, magnitudes).",
+  "module": {
+    "name": "VR Analytics Dispatch",
+    "area": "VR-Analytics BI Solutions",
+    "version": "1.0.0"
+  },
+  "timezone": "America/Argentina/San_Juan",
+  "locale": "es-AR",
+  "realtime": {
+    "mode": "polling",
+    "changesPollSeconds": 15,
+    "fullRefreshSeconds": 60,
+    "websocketPath": "/ws/dispatch"
+  },
+  "timeline": {
+    "defaultRange": "shift",
+    "defaultZoom": "hours",
+    "zoomLevels": {
+      "hours": { "label": "Horas", "pxPerHour": 150, "snapMinutes": 5, "tickMinutes": 15 },
+      "day": { "label": "Día", "pxPerHour": 54, "snapMinutes": 15, "tickMinutes": 60 },
+      "week": { "label": "Semana", "pxPerHour": 9, "snapMinutes": 60, "tickMinutes": 360 }
+    },
+    "ranges": {
+      "shift": { "label": "Turno", "days": 0.5, "defaultZoom": "hours" },
+      "day": { "label": "Día", "days": 1, "defaultZoom": "day" },
+      "week": { "label": "Semana", "days": 7, "defaultZoom": "week" },
+      "2weeks": { "label": "2 semanas", "days": 14, "defaultZoom": "week" },
+      "4weeks": { "label": "4 semanas", "days": 28, "defaultZoom": "week" }
+    },
+    "laneHeight": 62,
+    "nowLineRefreshSeconds": 15,
+    "lateToleranceMinutes": 5
+  },
+  "ciclosOperativos": {
+    "$comment": "Árbol del panel izquierdo. Las tareas se cargan desde standard_tasks agrupadas por categoría.",
+    "rootLabel": "Ciclo Operativo",
+    "categoryOrder": ["CAR", "PER", "ACA", "AUX", "INS", "MAN", "DEM"]
+  }
+}
