@@ -7,9 +7,13 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# Forzar NODE_ENV=development durante la compilación para asegurar que se instalen vite y typescript
+ARG NODE_ENV=development
+ENV NODE_ENV=development
+
 # Copia archivos de dependencias
 COPY package*.json ./
-RUN npm ci
+RUN npm ci --include=dev
 
 # Parámetro opcional para inyectar una URL absoluta de API en tiempo de compilación.
 # Si se deja vacío (predeterminado), las llamadas van a /api y Nginx las reenvía internamente al backend.

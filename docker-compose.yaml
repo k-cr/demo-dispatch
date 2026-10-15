@@ -1,0 +1,112 @@
+# =============================================================================
+# DISPATCH · Docker Compose (Producción, Staging y Coolify)
+# Módulo de planificación y monitoreo de ciclos operativos
+# =============================================================================
+#
+# Uso local:
+#   docker compose up -d db          # Inicia solo la base de datos (para npm run dev)
+#   docker compose up --build        # Levanta todo el stack localmente en producción
+#   docker compose down -v           # Limpia contenedores y borra el volumen de datos
+#
+# Uso en Coolify:
+#   1. Agregue un recurso "Docker Compose" apuntando a este repositorio.
+#   2. En Coolify, asigne el dominio público al servicio "frontend".
+#      El frontend reenvía internamente las llamadas /api al backend.
+#   3. (Opcional) Si desea exponer la API directamente, asigne un dominio a "backend".
+# =============================================================================
+
+services:
+  # ---------------------------------------------------------------------------
+  # 1. Base de datos PostgreSQL 16
+  # ---------------------------------------------------------------------------
+  db:
+    image: postgres:16-alpine
+    container_name: dispatch-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-dispatch}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dispatch}
+      POSTGRES_DB: ${POSTGRES_DB:-dispatch}
+      TZ: ${OPERATION_TIMEZONE:-America/Argentina/San_Juan}
+    ports:
+      # Puerto para acceso local / administración (en producción Coolify se aísla en red interna)
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - dispatch-data:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-dispatch} -d ${POSTGRES_DB:-dispatch}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - dispatch-network
+
+  # ---------------------------------------------------------------------------
+  # 2. Backend REST API (Node.js + Express + TypeScript)
+  # ---------------------------------------------------------------------------
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: dispatch-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: postgres://${POSTGRES_USER:-dispatch}:${POSTGRES_PASSWORD:-dispatch}@db:5432/${POSTGRES_DB:-dispatch}
+      DB_SCHEMA: ${DB_SCHEMA:-dispatch}
+      CORS_ORIGIN: ${CORS_ORIGIN:-*}
+      OPERATION_TIMEZONE: ${OPERATION_TIMEZONE:-America/Argentina/San_Juan}
+      REALTIME_PG_LISTEN: ${REALTIME_PG_LISTEN:-true}
+      AUTO_MIGRATE: ${AUTO_MIGRATE:-false}
+      AUTO_SEED: ${AUTO_SEED:-false}
+    ports:
+      - "${PORT:-4000}:4000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:4000/api/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+    networks:
+      - dispatch-network
+
+  # ---------------------------------------------------------------------------
+  # 3. Frontend SPA (React 19 + Vite + Tailwind + Nginx)
+  # ---------------------------------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-}
+    container_name: dispatch-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      BACKEND_URL: http://backend:4000
+      PORT: 80
+    ports:
+      - "${FRONTEND_PORT:-80}:80"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:80/ || exit 1"]
+      interval: 15s
+      timeout: 5s
+      start_period: 5s
+      retries: 3
+    networks:
+      - dispatch-network
+
+volumes:
+  dispatch-data:
+
+networks:
+  dispatch-network:
+    driver: bridge

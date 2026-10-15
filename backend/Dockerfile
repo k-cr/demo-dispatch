@@ -7,9 +7,13 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# Forzar NODE_ENV=development durante la compilación para asegurar que se instale TypeScript (tsc)
+ARG NODE_ENV=development
+ENV NODE_ENV=development
+
 # Copia dependencias
 COPY package*.json ./
-RUN npm ci
+RUN npm ci --include=dev
 
 # Copia configuración y código fuente para compilar
 COPY tsconfig.json ./
